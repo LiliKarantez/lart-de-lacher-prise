@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>La Carte du Jour — Les Cœurs Solitaires</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,600&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --violet: #9B59B6;
+    --fuchsia: #E91E8C;
+    --turquoise: #00BCD4;
+    --creme: #FFF8F5;
+    --noir: #1A1A1A;
+    --gris: #888;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'Montserrat', sans-serif;
+    background: var(--creme);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px 40px;
+    position: relative;
+    overflow-x: hidden;
+  }
+  body::before {
+    content:'';
+    position:fixed; inset:0;
+    background:
+      radial-gradient(circle at 20% 20%, rgba(155,89,182,0.06) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(0,188,212,0.05) 0%, transparent 50%);
+    pointer-events:none; z-index:0;
+  }
+  .wrapper {
+    position:relative; z-index:1;
+    width:100%; max-width:480px;
+    display:flex; flex-direction:column;
+    align-items:center; gap:20px;
+  }
+
+  /* HEADER */
+  .header { text-align:center; }
+  .brand {
+    font-size:10px; font-weight:600; letter-spacing:3px;
+    text-transform:uppercase; color:var(--violet); margin-bottom:10px; opacity:.7;
+  }
+  .event-date {
+    font-family:'Montserrat',sans-serif;
+    font-size:12px; font-weight:600; letter-spacing:1px;
+    color:var(--gris); margin-bottom:4px;
+  }
+  .event-name {
+    font-family:'Playfair Display',serif;
+    font-size:clamp(16px,4vw,21px); font-weight:700;
+    color:var(--violet); line-height:1.3; margin-bottom:10px;
+  }
+  .date-badge {
+    display:inline-flex; align-items:center; gap:8px;
+    background:white; border:1px solid rgba(155,89,182,0.2);
+    border-radius:50px; padding:6px 16px;
+    font-size:11px; font-weight:500; color:var(--gris); letter-spacing:.5px;
+  }
+  .date-dot {
+    width:6px; height:6px; border-radius:50%;
+    background:var(--fuchsia); flex-shrink:0;
+    animation:blink 2s ease-in-out infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+  /* CARD */
+  .card-scene {
+    width:340px; height:460px;
+    perspective:1200px; cursor:pointer;
+  }
+  .card-inner {
+    width:100%; height:100%;
+    position:relative; transform-style:preserve-3d;
+    transition:transform .8s cubic-bezier(.4,0,.2,1);
+  }
+  .card-scene.flipped .card-inner { transform:rotateY(180deg); }
+  .card-face {
+    position:absolute; inset:0;
+    backface-visibility:hidden; border-radius:24px; overflow:hidden;
+  }
+
+  /* BACK */
+  .card-back {
+    background:linear-gradient(145deg,var(--violet) 0%,#7B3FA0 40%,#5C2D91 100%);
+    display:flex; align-items:center; justify-content:center; padding:40px;
+    box-shadow:0 30px 80px rgba(155,89,182,.35), 0 10px 30px rgba(0,0,0,.1);
+    position:relative;
+  }
+  .card-back::before {
+    content:''; position:absolute; inset:0;
+    background:radial-gradient(circle at 30% 30%,rgba(255,255,255,.12) 0%,transparent 50%),
+               radial-gradient(circle at 70% 70%,rgba(0,188,212,.15) 0%,transparent 40%);
+  }
+  .card-back::after {
+    content:''; position:absolute; inset:12px;
+    border:1px solid rgba(255,255,255,.15); border-radius:16px; pointer-events:none;
+  }
+  .card-back-content { position:relative; text-align:center; }
+  .heart-big {
+    width:72px; height:72px; margin:0 auto 20px; display:block;
+    animation:floatHeart 3s ease-in-out infinite;
+    filter:drop-shadow(0 4px 20px rgba(233,30,140,.5));
+  }
+  @keyframes floatHeart { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+  .card-back-title {
+    font-family:'Playfair Display',serif;
+    font-size:26px; font-weight:700; color:white; line-height:1.2; margin-bottom:6px;
+  }
+  .card-back-title em { font-style:italic; color:rgba(255,255,255,.85); }
+  .card-back-sub {
+    font-family:'Cormorant Garamond',serif;
+    font-size:13px; color:rgba(255,255,255,.55);
+    letter-spacing:1px; text-transform:uppercase; margin-bottom:32px;
+  }
+  .tap-hint {
+    display:inline-flex; align-items:center; gap:8px;
+    background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.2);
+    border-radius:50px; padding:10px 22px;
+    font-size:11px; font-weight:500; color:rgba(255,255,255,.8);
+    letter-spacing:1px; text-transform:uppercase; transition:all .3s;
+  }
+  .card-scene:hover .tap-hint { background:rgba(255,255,255,.18); }
+  .tap-arrow { animation:pulseArrow 1.5s ease-in-out infinite; }
+  @keyframes pulseArrow { 0%,100%{transform:translateX(0)} 50%{transform:translateX(4px)} }
+
+  /* FRONT */
+  .card-front {
+    transform:rotateY(180deg);
+    background:white; display:flex; flex-direction:column;
+    box-shadow:0 30px 80px rgba(155,89,182,.25), 0 10px 30px rgba(0,0,0,.08);
+  }
+  .card-front-top {
+    padding:24px 24px 0;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .card-type-badge {
+    font-size:10px; font-weight:600; letter-spacing:2px; text-transform:uppercase;
+    padding:5px 12px; border-radius:50px;
+    background:#F3E5F5; color:var(--violet);
+  }
+  .heart-small { width:26px; height:26px; opacity:.25; }
+  .card-front-emoji {
+    font-size:50px; text-align:center; padding:18px 0 12px; display:block;
+  }
+  .card-front-body {
+    flex:1; padding:0 28px 18px;
+    display:flex; flex-direction:column; justify-content:center;
+  }
+  .card-quote {
+    font-family:'Playfair Display',serif;
+    font-size:19px; font-style:italic; color:var(--noir);
+    line-height:1.55; text-align:center; margin-bottom:16px; position:relative;
+  }
+  .card-quote::before {
+    content:'\201C'; font-size:56px; color:var(--violet); opacity:.12;
+    position:absolute; top:-14px; left:-6px;
+    font-family:'Playfair Display',serif; line-height:1;
+  }
+  .card-reflection {
+    font-family:'Cormorant Garamond',serif;
+    font-size:15px; color:var(--gris); line-height:1.7;
+    text-align:center; font-style:italic;
+    border-top:1px solid #F0E6F6; padding-top:14px;
+  }
+  .card-front-footer {
+    background:linear-gradient(135deg,var(--violet),var(--fuchsia));
+    padding:14px 22px; border-radius:0 0 24px 24px;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .card-front-brand {
+    font-family:'Cormorant Garamond',serif;
+    font-size:13px; color:rgba(255,255,255,.85); font-style:italic;
+  }
+  .card-front-date {
+    font-size:10px; color:rgba(255,255,255,.6); font-weight:500; letter-spacing:1px;
+  }
+
+  /* ACTIONS */
+  .actions {
+    width:100%; opacity:0; transform:translateY(10px);
+    transition:all .5s ease .3s; pointer-events:none;
+  }
+  .actions.visible { opacity:1; transform:translateY(0); pointer-events:auto; }
+  .btn-share {
+    width:100%;
+    background:linear-gradient(135deg,var(--violet),var(--fuchsia));
+    color:white; border:none; padding:15px 20px; border-radius:50px;
+    font-family:'Montserrat',sans-serif; font-size:13px; font-weight:600;
+    letter-spacing:1px; text-transform:uppercase; cursor:pointer;
+    transition:all .3s; box-shadow:0 6px 24px rgba(155,89,182,.3);
+  }
+  .btn-share:hover { transform:translateY(-2px); box-shadow:0 12px 32px rgba(155,89,182,.4); }
+
+  /* CTA */
+  .cta-strip {
+    width:100%;
+    background:linear-gradient(135deg,var(--violet),#7B3FA0);
+    border-radius:20px; padding:20px 22px;
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    opacity:0; transform:translateY(10px);
+    transition:all .5s ease .5s; pointer-events:none;
+  }
+  .cta-strip.visible { opacity:1; transform:translateY(0); pointer-events:auto; }
+  .cta-text { flex:1; }
+  .cta-text strong {
+    display:block; font-size:10px; font-weight:600; letter-spacing:1px;
+    text-transform:uppercase; color:rgba(255,255,255,.65); margin-bottom:4px;
+  }
+  .cta-text p {
+    font-family:'Cormorant Garamond',serif;
+    font-size:15px; font-style:italic; color:rgba(255,255,255,.9); line-height:1.4;
+  }
+  .btn-cta {
+    background:white; color:var(--violet); border:none;
+    padding:12px 18px; border-radius:50px;
+    font-family:'Montserrat',sans-serif; font-size:12px; font-weight:700;
+    cursor:pointer; white-space:nowrap; transition:all .3s;
+    box-shadow:0 4px 16px rgba(0,0,0,.15);
+  }
+  .btn-cta:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,0,0,.2); }
+
+  /* FOOTER */
+  .footer { text-align:center; width:100%; }
+  .footer-brand {
+    font-family:'Playfair Display',serif;
+    font-size:16px; color:var(--violet); opacity:.7; margin-bottom:12px;
+  }
+  .footer-info {
+    background:white; border:1px solid rgba(155,89,182,.12);
+    border-radius:16px; padding:16px 20px; margin-bottom:10px;
+  }
+  .footer-contact {
+    display:flex; flex-direction:column; gap:5px; margin-bottom:14px;
+  }
+  .footer-contact span { font-size:11px; color:var(--gris); line-height:1.5; }
+  .footer-social { display:flex; gap:8px; justify-content:center; }
+  .social-btn {
+    display:inline-flex; align-items:center; gap:6px;
+    padding:7px 16px; border-radius:50px; font-size:11px; font-weight:600;
+    text-decoration:none; transition:all .2s;
+    border:1px solid rgba(155,89,182,.2); color:var(--violet); background:#F3E5F5;
+  }
+  .social-btn:hover { background:var(--violet); color:white; border-color:var(--violet); }
+  .footer-copy { font-size:9px; color:#CCC; line-height:1.6; padding:0 10px; }
+
+  /* PARTICLES */
+  .particles { position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
+  .particle { position:absolute; opacity:0; animation:floatUp linear infinite; }
+  @keyframes floatUp {
+    0%{transform:translateY(100vh) rotate(0deg);opacity:0}
+    10%{opacity:.05} 90%{opacity:.05}
+    100%{transform:translateY(-80px) rotate(360deg);opacity:0}
+  }
+  .confetti-piece {
+    position:fixed; width:8px; height:8px; border-radius:2px;
+    pointer-events:none; z-index:1000;
+    animation:confettiFall 1.2s ease-out forwards;
+  }
+  @keyframes confettiFall {
+    0%{transform:translateY(0) rotate(0deg);opacity:1}
+    100%{transform:translateY(400px) rotate(720deg);opacity:0}
+  }
+  @media(max-width:420px){
+    .card-scene{width:300px;height:420px}
+    .card-quote{font-size:17px}
+  }
+</style>
+</head>
+<body>
+<div class="particles" id="particles"></div>
+
+<div class="wrapper">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="brand">Les Cœurs Solitaires · Lili Karantez</div>
+    <div class="event-date">Samedi 06/06/2026 à Vannes (Morbihan)</div>
+    <div class="event-name">Le Grand Rendez-vous<br>des Cœurs Solitaires</div>
+    <div class="date-badge">
+      <span class="date-dot"></span>
+      <span id="todayDate">Lundi 9 mars 2026</span>
+    </div>
+  </div>
+
+  <!-- Card -->
+  <div class="card-scene" id="cardScene" onclick="flipCard()">
+    <div class="card-inner">
+
+      <!-- BACK -->
+      <div class="card-face card-back">
+        <div class="card-back-content">
+          <svg class="heart-big" viewBox="0 0 100 90" xmlns="http://www.w3.org/2000/svg">
+            <path d="M50 85C50 85 5 55 5 28C5 14 16 5 28 5C36 5 44 9 50 16C56 9 64 5 72 5C84 5 95 14 95 28C95 55 50 85 50 85Z" fill="#FFD700" stroke="rgba(255,255,255,0.25)" stroke-width="1.5"/>
+          </svg>
+          <div class="card-back-title">La Carte<br><em>du Jour</em></div>
+          <div class="card-back-sub">Grand Rendez-Vous · 6 juin 2026</div>
+          <div class="tap-hint">Retourner la carte <span class="tap-arrow">→</span></div>
+        </div>
+      </div>
+
+      <!-- FRONT -->
+      <div class="card-face card-front">
+        <div class="card-front-top">
+          <span class="card-type-badge" id="cardTypeBadge">✨ Pensée du jour</span>
+          <svg class="heart-small" viewBox="0 0 100 90">
+            <path d="M50 85C50 85 5 55 5 28C5 14 16 5 28 5C36 5 44 9 50 16C56 9 64 5 72 5C84 5 95 14 95 28C95 55 50 85 50 85Z" fill="#9B59B6"/>
+          </svg>
+        </div>
+        <span class="card-front-emoji" id="cardEmoji">🌊</span>
+        <div class="card-front-body">
+          <p class="card-quote" id="cardQuote">L'amour ne se trouve pas. Il se reconnaît.</p>
+          <p class="card-reflection" id="cardReflection">Et si aujourd'hui vous ouvriez les yeux sur ce qui est déjà là ?</p>
+        </div>
+        <div class="card-front-footer">
+          <span class="card-front-brand">Les Cœurs Solitaires</span>
+          <span class="card-front-date" id="cardFooterDate">9 MARS 2026</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Share -->
+  <div class="actions" id="actions">
+    <button class="btn-share" onclick="shareCard()">🤍 Partager cette carte</button>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-strip" id="ctaStrip">
+    <div class="cta-text">
+      <strong>⚠️ Tarif Early bird jusqu'au 16 mars 2026</strong>
+      <p>Votre prochaine belle histoire commence peut-être le samedi 6 juin à Vannes. 🤍</p>
+    </div>
+    <button class="btn-cta" onclick="window.open('https://ypl.me/PUR','_blank')">Réserver 🤍</button>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div class="footer-brand">Les Cœurs Solitaires</div>
+    <div class="footer-info">
+      <div class="footer-contact">
+        <span>🤍 Lili Karantez — Auteure · Éditrice · Créatrice d'expériences relationnelles</span>
+        <span>📍 Centre des Affaires Lorient La Base — 1 rue Étienne d'Orves, 56100 Lorient</span>
+        <span>✉️ lilikarantez@gmail.com</span>
+        <span>SIRET : 40149331700069</span>
+      </div>
+      <div class="footer-social">
+        <a href="https://www.facebook.com/lili.karantez.3" target="_blank" class="social-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+          Facebook
+        </a>
+        <a href="https://www.instagram.com/lilikarantez/" target="_blank" class="social-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+          Instagram
+        </a>
+      </div>
+    </div>
+    <div class="footer-copy">© Lili Karantez — Tous droits réservés. Toute reproduction, même partielle, est strictement interdite sans autorisation écrite de l'auteure.</div>
+  </div>
+
+</div>
+
+<script>
+const cards = [
+  { type:"pensee", typeLabel:"✨ Pensée du jour", emoji:"🌊", quote:"L'amour ne se trouve pas. Il se reconnaît.", reflection:"Et si aujourd'hui vous ouvriez les yeux sur ce qui est déjà là ?" },
+  { type:"action", typeLabel:"🌸 Action du jour", emoji:"✉️", quote:"Écrivez en deux phrases ce que vous cherchez vraiment.", reflection:"Pas ce que vous pensez devoir chercher. Ce que vous voulez, vous." },
+  { type:"affirmation", typeLabel:"🤍 Affirmation du jour", emoji:"⭐", quote:"Je mérite un amour qui me choisit pleinement.", reflection:"Répétez-le ce matin. Puis laissez-le faire son chemin." },
+  { type:"pensee", typeLabel:"✨ Pensée du jour", emoji:"🔥", quote:"Les plus belles rencontres arrivent quand on a cessé d'attendre.", reflection:"Peut-être est-ce le moment d'oser, justement." },
+  { type:"action", typeLabel:"🌸 Action du jour", emoji:"🦋", quote:"Aujourd'hui, souriez à quelqu'un que vous ne connaissez pas.", reflection:"La connexion humaine commence toujours par un instant minuscule." },
+  { type:"affirmation", typeLabel:"🤍 Affirmation du jour", emoji:"🌿", quote:"Je suis prêt·e à recommencer — et c'est une force.", reflection:"Renaître demande du courage. Vous en avez plus que vous ne le croyez." },
+  { type:"pensee", typeLabel:"✨ Pensée du jour", emoji:"💫", quote:"Ce que vous cherchez chez l'autre existe d'abord en vous.", reflection:"Quelle qualité admirez-vous ? Elle vous appartient déjà." },
+  { type:"action", typeLabel:"🌸 Action du jour", emoji:"📖", quote:"Écrivez la première phrase de votre prochaine belle histoire.", reflection:"Juste une phrase. Le reste s'écrira de lui-même." },
+  { type:"affirmation", typeLabel:"🤍 Affirmation du jour", emoji:"🌸", quote:"Mon histoire amoureuse n'est pas terminée. Elle reprend.", reflection:"Dites-le à voix haute. Quelque chose change quand on s'y autorise." },
+  { type:"pensee", typeLabel:"✨ Pensée du jour", emoji:"🌙", quote:"L'âme sœur amplifie ce qui existe déjà en vous.", reflection:"Qui êtes-vous quand vous vous sentez pleinement vous-même ?" },
+  { type:"action", typeLabel:"🌸 Action du jour", emoji:"🎭", quote:"Racontez à voix haute votre meilleur souvenir amoureux.", reflection:"Même seul·e. Les mots gardent la mémoire de ce qui a été vrai." },
+  { type:"affirmation", typeLabel:"🤍 Affirmation du jour", emoji:"💎", quote:"Je choisis de croire que la rencontre est encore possible.", reflection:"La conviction précède toujours la réalité. Commencez là." },
+  { type:"pensee", typeLabel:"✨ Pensée du jour", emoji:"🌺", quote:"On croise les autres quand on est prêt·e à les voir.", reflection:"Le 6 juin à Vannes — peut-être que vous y serez prêt·e." },
+  { type:"action", typeLabel:"🌸 Action du jour", emoji:"🕊️", quote:"Lâchez une croyance qui vous empêche d'ouvrir votre cœur.", reflection:"Juste une. Notez-la sur un papier. Et déchirez-le." }
+];
+
+let isFlipped = false;
+let currentCard = null;
+
+function setDate() {
+  const now = new Date();
+  const days = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+  const months = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+  const monthsUp = ['JANVIER','FÉVRIER','MARS','AVRIL','MAI','JUIN','JUILLET','AOÛT','SEPTEMBRE','OCTOBRE','NOVEMBRE','DÉCEMBRE'];
+
+  document.getElementById('todayDate').textContent =
+    `${days[now.getDay()]} ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+  document.getElementById('cardFooterDate').textContent =
+    `${now.getDate()} ${monthsUp[now.getMonth()]} ${now.getFullYear()}`;
+
+  const dayOfYear = Math.floor((now - new Date(now.getFullYear(),0,0)) / 86400000);
+  currentCard = cards[dayOfYear % cards.length];
+
+  document.getElementById('cardTypeBadge').textContent = currentCard.typeLabel;
+  document.getElementById('cardEmoji').textContent = currentCard.emoji;
+  document.getElementById('cardQuote').textContent = currentCard.quote;
+  document.getElementById('cardReflection').textContent = currentCard.reflection;
+}
+
+function flipCard() {
+  if (isFlipped) return;
+  isFlipped = true;
+  document.getElementById('cardScene').classList.add('flipped');
+  document.getElementById('cardScene').style.cursor = 'default';
+  setTimeout(() => {
+    document.getElementById('actions').classList.add('visible');
+    document.getElementById('ctaStrip').classList.add('visible');
+  }, 500);
+  launchConfetti();
+  // Web3Forms — notification silencieuse
+  fetch('https://api.web3forms.com/submit', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      access_key:'d42b8d9d-a52c-4888-a489-5dd59b1b0f5b',
+      subject:'Carte du Jour retournée — Les Cœurs Solitaires',
+      message:`Carte retournée le ${new Date().toLocaleDateString('fr-FR')} : "${currentCard.quote}"`,
+      from_name:'Carte du Jour'
+    })
+  }).catch(()=>{});
+}
+
+function shareCard() {
+  const text = `🤍 Carte du Jour — Les Cœurs Solitaires\n\n"${currentCard.quote}"\n\n${currentCard.reflection}\n\n🗓️ Samedi 06/06/2026 · Vannes (Morbihan)\nLe Grand Rendez-vous des Cœurs Solitaires\n🔗 https://ypl.me/PUR`;
+  if (navigator.share) {
+    navigator.share({ title:'La Carte du Jour — Les Cœurs Solitaires', text });
+  } else {
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = document.querySelector('.btn-share');
+      btn.textContent = '✓ Copié dans le presse-papier !';
+      setTimeout(() => btn.textContent = '🤍 Partager cette carte', 2500);
+    });
+  }
+}
+
+function launchConfetti() {
+  const colors = ['#9B59B6','#E91E8C','#00BCD4','#FFD700','#FF6BB5'];
+  for (let i = 0; i < 24; i++) {
+    setTimeout(() => {
+      const p = document.createElement('div');
+      p.className = 'confetti-piece';
+      p.style.cssText = `left:${30+Math.random()*40}%;top:30%;background:${colors[i%5]};border-radius:${Math.random()>.5?'50%':'3px'};animation-delay:${Math.random()*.4}s;animation-duration:${.8+Math.random()*.8}s`;
+      document.body.appendChild(p);
+      setTimeout(() => p.remove(), 2000);
+    }, i * 25);
+  }
+}
+
+function createParticles() {
+  const container = document.getElementById('particles');
+  const heartColors = ['#9B59B6','#E91E8C','#FFD700','#00BCD4'];
+  for (let i = 0; i < 10; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const s = 10 + Math.random() * 12;
+    const c = heartColors[Math.floor(Math.random() * 4)];
+    p.innerHTML = `<svg width="${s}" height="${s}" viewBox="0 0 100 90"><path d="M50 85C50 85 5 55 5 28C5 14 16 5 28 5C36 5 44 9 50 16C56 9 64 5 72 5C84 5 95 14 95 28C95 55 50 85 50 85Z" fill="${c}"/></svg>`;
+    p.style.left = Math.random() * 100 + '%';
+    p.style.animationDuration = (18 + Math.random() * 15) + 's';
+    p.style.animationDelay = (Math.random() * 20) + 's';
+    container.appendChild(p);
+  }
+}
+
+setDate();
+createParticles();
+</script>
+</body>
+</html>
